@@ -1,8 +1,15 @@
 <template>
   <q-page>
     <div class="q-pa-lg">
-      <div>{{ mapCenter }}</div>
-      <div id="map" class="map-container"></div>
+      <div>
+        <q-input v-model="mapZoom" v-on:change="updateMap()" label="Map zoom" />
+      </div>
+      <div>Map Center: {{ mapCenter }}</div>
+      <div>Map Zoom: {{ mapZoom }}</div>
+      <div>Map Zoom Computed: {{ zoomComp }}</div>
+      <div>Map Center Computed: {{ centerComp }}</div>
+      <div>Area: {{ areaComp }}</div>
+      <div id="openmap" ref="map-root" class="map-container"></div>
     </div>
   </q-page>
 </template>
@@ -13,14 +20,22 @@ import "ol/ol.css";
 import { Map, View } from "ol";
 import TileLayer from "ol/layer/Tile";
 import OSM from "ol/source/OSM";
+import { getArea } from "ol/extent";
 import { fromLonLat, toLonLat } from "ol/proj";
 
 export default {
   name: "Map",
   data() {
     return {
-      mapCenter: [25.073697, 58.706599]
+      map: null,
+      mapCenter: [25.073697, 58.706599],
+      mapZoom: 7
     };
+  },
+  watch: {
+    zoomComp: function() {
+      console.log("zoom updated");
+    }
   },
   mounted() {
     this.createMap();
@@ -28,8 +43,8 @@ export default {
   methods: {
     // create map object
     createMap() {
-      const map = new Map({
-        target: "map",
+      this.map = new Map({
+        target: this.$refs["map-root"],
         layers: [
           new TileLayer({
             source: new OSM()
@@ -37,13 +52,39 @@ export default {
         ],
         view: new View({
           center: fromLonLat(this.mapCenter),
-          zoom: 7
+          zoom: this.mapZoom
         })
       });
-      // this.mapCenter = toLonLat(map.getView().getCenter());
+    },
+    // update map
+    updateMap() {
+      this.map.getView().setZoom(this.mapZoom);
     }
   },
-  computed: {}
+  computed: {
+    // zoom computed
+    zoomComp: function() {
+      if (this.map) {
+        let zoom = this.map.getView().getZoom();
+        return zoom;
+      } else return null;
+    },
+    // center computed
+    centerComp: function() {
+      if (this.map) {
+        let center = this.map.getView().getCenter();
+        return center;
+      } else return null;
+    },
+    // area computed
+    areaComp: function() {
+      if (this.map) {
+        let extent = this.map.getView().calculateExtent();
+        let extentArea = getArea(extent);
+        return extentArea;
+      } else return null;
+    }
+  }
 };
 </script>
 
