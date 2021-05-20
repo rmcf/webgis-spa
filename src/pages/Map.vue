@@ -9,6 +9,8 @@
       <div>Map Zoom Computed: {{ zoomComp }}</div>
       <div>Map Center Computed: {{ centerComp }}</div>
       <div>Area: {{ areaComp }}</div>
+      <div>Projection Computed: {{ projComputed }}</div>
+      <div>Coordinates computed: {{ clickCoordinates }}</div>
       <div id="openmap" ref="map-root" class="map-container"></div>
     </div>
   </q-page>
@@ -29,7 +31,8 @@ export default {
     return {
       map: null,
       mapCenter: [25.073697, 58.706599],
-      mapZoom: 7
+      mapZoom: 7,
+      clickCoordinates: null
     };
   },
   watch: {
@@ -59,6 +62,13 @@ export default {
     // update map
     updateMap() {
       this.map.getView().setZoom(this.mapZoom);
+    },
+    // click coordinates
+    clickCoords() {
+      this.map.on("singleclick", function(evt) {
+        console.log(evt.coordinate);
+        this.clickCoordinates = evt.coordinate;
+      });
     }
   },
   computed: {
@@ -82,6 +92,12 @@ export default {
         let extent = this.map.getView().calculateExtent();
         let extentArea = getArea(extent);
         return extentArea;
+      } else return null;
+    },
+    projComputed: function() {
+      if (this.map) {
+        let proj = this.map.getView().getProjection();
+        return proj.code_;
       } else return null;
     }
   }
