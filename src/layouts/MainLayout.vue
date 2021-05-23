@@ -1,22 +1,24 @@
 <template>
   <q-layout view="hHh Lpr lFf">
     <q-header elevated>
-      <q-toolbar>
-        <q-btn
-          flat
-          dense
-          round
-          icon="menu"
-          aria-label="Menu"
-          @click="leftDrawerOpen = !leftDrawerOpen"
-        />
+      <div class="bg-primary text-white">
+        <q-toolbar>
+          <q-btn
+            flat
+            dense
+            round
+            icon="menu"
+            aria-label="Menu"
+            @click="leftDrawerOpen = !leftDrawerOpen"
+          />
 
-        <q-toolbar-title>
-          WebGIS SPA
-        </q-toolbar-title>
+          <q-toolbar-title>
+            WebGIS SPA
+          </q-toolbar-title>
 
-        <div>Quasar v{{ $q.version }}</div>
-      </q-toolbar>
+          <div>DGGS</div>
+        </q-toolbar>
+      </div>
     </q-header>
 
     <q-drawer
