@@ -1,7 +1,7 @@
 <template>
   <q-layout view="hHh Lpr lFf">
     <q-header elevated>
-      <div class="bg-primary text-white">
+      <div class="bg-white text-blue-grey-9">
         <q-toolbar>
           <q-btn
             flat
@@ -11,9 +11,12 @@
             aria-label="Menu"
             @click="leftDrawerOpen = !leftDrawerOpen"
           />
+          <q-avatar class="logo">
+            <img src="static/img/dggs.svg" />
+          </q-avatar>
 
-          <q-toolbar-title>
-            WebGIS SPA
+          <q-toolbar-title class="text-orange-9">
+            WebGIS H3
           </q-toolbar-title>
 
           <div>DGGS</div>
@@ -75,3 +78,9 @@ export default {
   }
 };
 </script>
+
+<style scoped>
+.logo {
+  margin-left: 10px;
+}
+</style>

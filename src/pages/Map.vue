@@ -4,118 +4,190 @@
     <div class="q-pa-lg map-flex-container">
       <!-- map info -->
       <div class="map-info">
-        <div v-if="infoClick" class="text-center">Please click on the map</div>
-        <!-- coordinates -->
-        <div v-if="onClickCoordinatesComp">
-          <q-card class="my-card card-first-margins">
-            <q-card-section>
-              <div class="text-subtitle1 text-weight-medium">
-                Selected coordinates:
-              </div>
-              <div>X= {{ onClickCoordinatesComp[0] }}</div>
-              <div>Y= {{ onClickCoordinatesComp[1] }}</div>
-            </q-card-section>
-            <q-separator />
-            <q-card-section>
-              <div>
-                <q-select v-model="level" :options="levels" label="Level" />
-              </div>
-            </q-card-section>
-            <q-card-actions vertical align="right">
+        <!-- tabs -->
+        <q-tabs
+          v-model="tab"
+          dense
+          class="text-grey"
+          active-color="primary"
+          indicator-color="primary"
+          align="justify"
+        >
+          <q-tab name="define" label="hex define" />
+          <q-tab name="calculate" label="hex calculate" />
+        </q-tabs>
+        <q-separator />
+        <q-tab-panels v-model="tab" animated>
+          <!-- define HEX panel -->
+          <q-tab-panel name="define">
+            <div v-if="infoClick">
+              <!-- click banner -->
+              <q-banner class="bg-grey-3">
+                <template v-slot:avatar>
+                  <q-icon name="location_on" color="blue-grey-5" />
+                </template>
+                Please click on the map
+              </q-banner>
+            </div>
+            <!-- clean map button -->
+            <div v-if="!infoClick" class="clean-button">
               <q-btn
-                v-if="onClickCoordinatesComp"
-                v-on:click="
-                  getHexagon(
-                    onClickCoordinatesComp[0],
-                    onClickCoordinatesComp[1],
-                    level
-                  )
-                "
+                v-on:click="cleanMap()"
+                color="orange-7"
+                icon="clear"
+                class="full-width"
+                label="Clean map"
                 flat
-                color="primary"
-                label="define hexagon"
               />
-            </q-card-actions>
-          </q-card>
-        </div>
+            </div>
 
-        <!-- hexagon -->
-        <div v-if="hexagon">
-          <q-card class="my-card card-margins">
-            <q-card-section>
-              <div class="text-subtitle1 text-weight-medium">
-                Selected hexagon:
-              </div>
-              <div>{{ hexagon }}</div>
-            </q-card-section>
-            <q-separator />
-            <q-card-actions vertical align="right">
-              <q-btn
-                v-if="onClickCoordinatesComp"
-                v-on:click="convertH3toFeature(hexagon)"
-                flat
-                color="primary"
-                label="hexagon to feature"
-              />
-            </q-card-actions>
-          </q-card>
-        </div>
+            <!-- coordinates -->
+            <div v-if="onClickCoordinatesComp">
+              <q-card class="my-card card-first-margins">
+                <q-card-section>
+                  <div class="text-subtitle1 text-weight-medium">
+                    Selected coordinates:
+                  </div>
+                  <div>X= {{ onClickCoordinatesComp[0] }}</div>
+                  <div>Y= {{ onClickCoordinatesComp[1] }}</div>
+                </q-card-section>
+                <q-separator />
+                <q-card-section>
+                  <div>
+                    <q-select
+                      v-model="hexDefineLevel"
+                      :options="hexDefineLevels"
+                      label="Level"
+                    />
+                  </div>
+                </q-card-section>
+                <q-card-actions vertical align="right">
+                  <q-btn
+                    v-if="onClickCoordinatesComp"
+                    v-on:click="
+                      getHexagon(
+                        onClickCoordinatesComp[0],
+                        onClickCoordinatesComp[1],
+                        hexDefineLevel
+                      )
+                    "
+                    flat
+                    color="primary"
+                    label="define hexagon"
+                  />
+                </q-card-actions>
+              </q-card>
+            </div>
 
-        <!-- feature -->
-        <div v-if="feature">
-          <q-card class="my-card card-margins">
-            <q-card-section class="feature-json">
-              <div class="text-subtitle1 text-weight-medium">
-                Selected feature:
-              </div>
-              <div>{{ feature }}</div>
-            </q-card-section>
-            <q-separator />
-            <q-card-actions vertical align="right">
+            <!-- hexagon -->
+            <div v-if="hexDefineHexagon">
+              <q-card class="my-card card-margins">
+                <q-card-section>
+                  <div class="text-subtitle1 text-weight-medium">
+                    Selected hexagon:
+                  </div>
+                  <div>{{ hexDefineHexagon }}</div>
+                </q-card-section>
+                <q-separator />
+                <q-card-actions vertical align="right">
+                  <q-btn
+                    v-if="onClickCoordinatesComp"
+                    v-on:click="convertH3toFeature(hexDefineHexagon)"
+                    flat
+                    color="primary"
+                    label="hexagon to feature"
+                  />
+                </q-card-actions>
+              </q-card>
+            </div>
+
+            <!-- feature -->
+            <div v-if="hexDefineFeature">
+              <q-card class="my-card card-margins">
+                <q-card-section class="feature-json">
+                  <div class="text-subtitle1 text-weight-medium">
+                    Selected feature:
+                  </div>
+                  <div>{{ hexDefineFeature }}</div>
+                </q-card-section>
+                <q-separator />
+                <q-card-actions vertical align="right">
+                  <q-btn
+                    v-if="onClickCoordinatesComp"
+                    v-on:click="renderHexagon(hexDefineFeature)"
+                    flat
+                    color="primary"
+                    label="feature to map"
+                  />
+                </q-card-actions>
+              </q-card>
+            </div>
+            <div></div>
+          </q-tab-panel>
+
+          <!-- calculate HEX panel -->
+          <q-tab-panel name="calculate">
+            <!-- clean map button -->
+            <div v-if="hexCalculateFeatures.length !== 0" class="clean-button">
               <q-btn
-                v-if="onClickCoordinatesComp"
-                v-on:click="renderHexagon(feature)"
+                v-on:click="cleanMap()"
+                color="orange-7"
+                icon="clear"
+                class="full-width"
+                label="Clean map"
                 flat
-                color="primary"
-                label="feature to map"
               />
-            </q-card-actions>
-          </q-card>
-        </div>
-        <div>
-          <!-- update map -->
-          <!-- <q-btn
-            v-on:click="updateMap"
-            color="primary"
-            label="Update"
-            class="q-ma-sm"
-          /> -->
-        </div>
-        <!-- zoom input -->
-        <!-- <div>
-          <q-input
-            v-model="mapZoom"
-            v-on:change="updateMap()"
-            label="Map zoom"
-          />
-        </div> -->
-        <!-- info section -->
-        <!-- <div>Map Center: {{ mapCenter }}</div>
-        <hr />
-        <div>Map Zoom: {{ mapZoom }}</div>
-        <hr />
-        <div>Map Zoom Computed: {{ zoomComp }}</div>
-        <hr />
-        <div v-if="centerComp">
-          Map Center Computed:<br />
-          {{ centerComp[0] }}<br />
-          {{ centerComp[1] }}
-        </div>
-        <hr />
-        <div>Area: {{ areaComp }}</div>
-        <div>Projection Computed: {{ projComputed }}</div>
-        <div>Map width: {{ mapWidth }}</div>
-        <hr /> -->
+            </div>
+            <div v-if="hexCalculateFeatures.length === 0">
+              <q-select
+                v-model="hexCalculateLevel"
+                :options="hexCalculateLevels"
+                label="Level"
+              />
+            </div>
+            <!-- create hexagons on extent -->
+            <div v-if="hexCalculateFeatures.length === 0" class="calc-button">
+              <q-btn
+                v-on:click="extentToPolygon()"
+                color="primary"
+                icon="functions"
+                class="full-width"
+                label="Calculate HEXs"
+                flat
+              />
+            </div>
+            <!-- banner with quantity of calculated hexagons -->
+            <div v-if="hexCalculateFeatures.length !== 0">
+              <q-banner class="bg-grey-3">
+                <q-badge
+                  color="red"
+                  text-color="white"
+                  :label="this.hexCalculateHexagons.length"
+                />
+                hexagons calculated in map view at level
+                <q-badge
+                  color="orange"
+                  text-color="black"
+                  :label="this.hexCalculateLevel"
+                />
+              </q-banner>
+            </div>
+
+            <!-- hex list -->
+            <div v-if="hexCalculateFeatures.length !== 0" class="hexcalc-list">
+              <q-list bordered separator dense class="rounded-borders">
+                <q-item
+                  v-for="hex in hexCalculateHexagons"
+                  :key="hex"
+                  clickable
+                  v-ripple
+                >
+                  <q-item-section>{{ hex }}</q-item-section>
+                </q-item></q-list
+              >
+            </div>
+          </q-tab-panel>
+        </q-tab-panels>
       </div>
       <!-- map container -->
       <div id="openmap" ref="map" class="map-container"></div>
@@ -126,7 +198,7 @@
 <script>
 // openlayers
 import "ol/ol.css";
-import { geoToH3 } from "h3-js";
+import { geoToH3, polyfill, h3SetToMultiPolygon } from "h3-js";
 import geojson2h3 from "geojson2h3";
 import { Map, View } from "ol";
 import TileLayer from "ol/layer/Tile";
@@ -134,7 +206,13 @@ import OSM from "ol/source/OSM";
 import VectorLayer from "ol/layer/Vector";
 import VectorSource from "ol/source/Vector";
 import GeoJSON from "ol/format/GeoJSON";
-import { getArea } from "ol/extent";
+import {
+  getArea,
+  getBottomLeft,
+  getBottomRight,
+  getTopLeft,
+  getTopRight
+} from "ol/extent";
 import { fromLonLat, toLonLat } from "ol/proj";
 
 // Vue.use(h3ToGeo);
@@ -143,24 +221,31 @@ export default {
   name: "Map",
   data() {
     return {
+      // map object
       map: null,
       mapCenter: [25.073697, 58.706599],
       mapZoom: 7,
+      // coordinates of click
       clickCoordinates: null,
-      levels: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
-      level: 7,
-      hexagon: null,
-      feature: null
+      // tabs map-info
+      tab: "define",
+      // hex define
+      hexDefineLevels: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      hexDefineLevel: 2,
+      hexDefineHexagon: null,
+      hexDefineFeature: null,
+      // hex calculate
+      hexCalculateLevels: [1, 2, 3, 4],
+      hexCalculateLevel: 3,
+      hexCalculateHexagons: [],
+      hexCalculateFeatures: []
     };
   },
-  // watch: {
-  //   zoomComp: function() {
-  //     console.log("zoom updated");
-  //   }
-  // },
+
   mounted() {
     this.createMap();
   },
+
   methods: {
     // create map object
     createMap() {
@@ -168,10 +253,9 @@ export default {
       const tileLayer = new TileLayer({
         source: new OSM()
       });
-
+      // map object
       this.map = new Map({
         target: this.$refs["map"],
-
         layers: [tileLayer],
         view: new View({
           center: fromLonLat(this.mapCenter),
@@ -184,19 +268,46 @@ export default {
       this.map.getView().setZoom(this.mapZoom);
       this.map.updateSize();
     },
+    // clean map
+    cleanMap() {
+      // remove HTML map container
+      document.getElementById("openmap").innerHTML = "";
+      this.clickCoordinates = null;
+      // hex define clean
+      this.hexDefineLevel = 2;
+      this.hexDefineHexagon = null;
+      this.hexDefineFeature = null;
+      // hex calculate clean
+      this.hexCalculateLevel = 3;
+      this.hexCalculateFeatures = [];
+      this.hexCalculateHexagons = [];
+      // load empty map
+      this.createMap();
+    },
     // click coords
     clickCoordsMethod(coords) {
       this.clickCoordinates = toLonLat(coords);
-      this.hexagon = null;
-      this.feature = null;
+      this.hexDefineHexagon = null;
+      this.hexDefineFeature = null;
+    },
+    // convert to Lon Lat
+    convertToLonLat(point) {
+      return toLonLat(point);
+    },
+    // replace Lon with Lat
+    replaceLatLong(point) {
+      let newCoordinates = [];
+      newCoordinates.push(point[1]);
+      newCoordinates.push(point[0]);
+      return newCoordinates;
     },
     // get hexagon
     getHexagon(x, y, level) {
-      this.hexagon = geoToH3(y, x, level);
+      this.hexDefineHexagon = geoToH3(y, x, level);
     },
     // h3 to feature
     convertH3toFeature(adress) {
-      this.feature = geojson2h3.h3ToFeature(adress);
+      this.hexDefineFeature = geojson2h3.h3ToFeature(adress);
     },
     // render hexagon
     renderHexagon(feature) {
@@ -210,8 +321,42 @@ export default {
         })
       });
       this.map.addLayer(vectorLayer);
+    },
+    // extent to polygon
+    extentToPolygon() {
+      let corners = [];
+      let extent = this.map.getView().calculateExtent();
+      let bl = getBottomLeft(extent);
+      let tl = getTopLeft(extent);
+      let tr = getTopRight(extent);
+      let br = getBottomRight(extent);
+      corners.push(bl, tl, tr, br, bl);
+      let cornersConverted = [];
+      corners.forEach(point => {
+        let pointConverted = this.convertToLonLat(point);
+        let pointReplacedLongLat = this.replaceLatLong(pointConverted);
+        cornersConverted.push(pointReplacedLongLat);
+      });
+      // extent polygon to hexagons
+      let hexagons = polyfill(cornersConverted, this.hexCalculateLevel);
+      this.hexCalculateHexagons = hexagons;
+      hexagons.forEach(hex => {
+        let feature = geojson2h3.h3ToFeature(hex);
+        let hexagon = new GeoJSON().readFeature(feature, {
+          featureProjection: "EPSG:3857"
+        });
+        this.hexCalculateFeatures.push(hexagon);
+      });
+      // vector layer
+      let vectorLayer = new VectorLayer({
+        source: new VectorSource({
+          features: this.hexCalculateFeatures
+        })
+      });
+      this.map.addLayer(vectorLayer);
     }
   },
+
   computed: {
     // zoom computed
     zoomComp: function() {
@@ -233,7 +378,7 @@ export default {
     areaComp: function() {
       if (this.map) {
         let extent = this.map.getView().calculateExtent();
-        let extentArea = getArea(extent);
+        let extentArea = getArea(extent) / 1000000;
         return extentArea;
       } else return null;
     },
@@ -243,6 +388,25 @@ export default {
       if (this.map) {
         let proj = this.map.getView().getProjection();
         return proj.code_;
+      } else return null;
+    },
+
+    // projection computed
+    cornersComputed: function() {
+      if (this.map) {
+        let corners = [];
+        let extent = this.map.getView().calculateExtent();
+        let bl = getBottomLeft(extent);
+        let br = getBottomRight(extent);
+        let tl = getTopLeft(extent);
+        let tr = getTopRight(extent);
+        corners.push(
+          this.convertToLonLat(bl),
+          this.convertToLonLat(tl),
+          this.convertToLonLat(tr),
+          this.convertToLonLat(br)
+        );
+        return corners;
       } else return null;
     },
 
@@ -271,8 +435,8 @@ export default {
     infoClick: function() {
       if (
         this.clickCoordinates === null &&
-        this.hexagon === null &&
-        this.feature === null
+        this.hexDefineHexagon === null &&
+        this.hexDefineFeature === null
       ) {
         return true;
       } else {
@@ -310,6 +474,24 @@ export default {
   margin: 0px 5px 0px 5px;
 }
 
+.clean-button {
+  margin: 0px 5px 10px 5px;
+}
+
+.calc-button {
+  margin: 10px 5px 10px 5px;
+}
+
+.q-tab-panel {
+  padding: 16px 0px 16px 10px;
+}
+
+.hexcalc-list {
+  margin-top: 10px;
+  max-height: 400px;
+  overflow-y: scroll;
+}
+
 @media (min-width: 768px) {
   /* map and info container */
   .map-flex-container {
@@ -319,6 +501,7 @@ export default {
   /* map info */
   .map-info {
     flex: 0 0 300px;
+    min-height: 100vh;
   }
 }
 </style>
